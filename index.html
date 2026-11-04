@@ -514,6 +514,10 @@ body{word-break:keep-all;overflow-wrap:anywhere;line-break:strict}
 .sheet .cu-cap{min-height:2.9em}
 .sheet .btn.cu-done{opacity:.45}
 .sheet.cu .opts .btn:disabled{opacity:.45}
+#tut{position:fixed;z-index:25;pointer-events:none;opacity:0;transition:opacity .2s;filter:drop-shadow(0 0 6px rgba(255,210,127,.9)) drop-shadow(0 0 14px rgba(242,163,58,.6))}
+#tut .tut-tap{animation:tutTap 1s ease-in-out infinite}
+@keyframes tutTap{0%,100%{transform:translate(9px,9px)}50%{transform:translate(0,0)}}
+@media (prefers-reduced-motion:reduce){#tut .tut-tap{animation:none}}
 </style>
 
 <section id="splash" class="full"><button class="splashbtn" id="btnSplash">ゲームをはじめる</button></section>
@@ -1272,7 +1276,18 @@ function status(){
   return {k:a.some(f=>f.def.sym==='silent')?'bad':'warn',t:m.t};
 }
 
+// 初ライブ・対バンは直し方を4つまでに絞る（必要な直し方は必ず残す。絞り方はノードごとに固定）
 function fixOptions(node){
+  const all=fixOptionsAll(node);
+  if(!S.level||S.level.id>2||all.length<=4)return all;
+  const uni=(!S.inst||S.inst==='guitar')?UNIVERSAL[node.kind]:(UNI[S.inst]||{})[node.key];
+  const need=new Set();
+  S.faults.filter(f=>f.node===node.key).forEach(f=>{const ok=f.def.fix.find(id=>all.includes(id));need.add(ok||uni)});
+  const st=S.nodeState[node.key]=S.nodeState[node.key]||{};
+  if(!st.fill){const rest=shuffle(all.filter(id=>!need.has(id)&&id!==uni));st.fill=rest.slice(0,Math.max(0,4-need.size))}
+  return all.filter(id=>need.has(id)||st.fill.includes(id));
+}
+function fixOptionsAll(node){
   if(S.inst&&S.inst!=='guitar')return fixOptionsAlt(node);
   const g=S.gear;
   switch(node.kind){
@@ -3117,13 +3132,14 @@ function cuSpec(n,fix){
   return a;
 }
 const CU_SIL='#1c1920',CU_RIM='#ffd9a0';
-const CU_ARM='<path d="M18 14 L70 70 L100 70 L100 100 L40 100 L4 22z" fill="'+CU_SIL+'"/><path d="M18 14 L70 70 M4 22 L40 100" stroke="'+CU_RIM+'" stroke-width="1.2" fill="none" opacity=".7"/>';
-const CU_HANDP='<path d="M0 0 l-5 -4 q-3 -3 -1 -6 q3 -2 6 1 l10 10 q2 -12 10 -12 l14 2 q8 3 6 12 l-4 14 q-4 8 -14 8 l-12 -2 q-8 -2 -10 -10 z" fill="'+CU_SIL+'" stroke="'+CU_RIM+'" stroke-width="1.3" stroke-linejoin="round"/><path d="M14 4 l8 1 M16 10 l8 1" stroke="'+CU_RIM+'" stroke-width=".8" opacity=".5"/>';
+const CU_ARM='';
+// 手: 人さし指で指す形（手の甲側）。原点＝指先、腕は右下へ
+const CU_HANDP='<g transform="rotate(-42) scale(1.25)"><path d="M-3.6 3 Q-3.6 -1.2 0 -1.2 Q3.6 -1.2 3.8 3 L4.6 22 Q6.4 19.6 9.6 19.8 Q13.4 20.2 14 24.2 Q15.6 22 18.6 22.4 Q22 23 22.4 27 Q25 26.6 26 30 Q26.8 33 26 38 L25.4 44 Q24.6 50 20.6 53.6 L23.4 140 L-5.6 140 L-2.4 55 Q-7.6 51 -10.6 45.4 Q-13 40.6 -12.2 36.8 Q-11.2 33.2 -8.4 33.6 Q-6.2 34 -5.2 36.4 L-4.2 37.4 L-4.4 22 Z" fill="'+CU_SIL+'" stroke="'+CU_RIM+'" stroke-width="1.1" stroke-linejoin="round"/><path d="M4.6 22 Q4.8 30 5.2 34 M14 24.2 Q14 30 14.4 35 M22.4 27 Q22.6 32 22.4 36 M-5.2 36.4 Q-1 40.4 5 41 M-2.2 3.4 Q0 2 2.2 3.4 M-3.4 13.6 Q0 14.6 4 13.6" stroke="'+CU_RIM+'" stroke-width=".7" fill="none" opacity=".55" stroke-linecap="round"/></g>';
 const CU_ACTOR={
   hand:CU_ARM+CU_HANDP,
   key:CU_ARM+CU_HANDP+'<g stroke="#c9c2b2" stroke-width="2.4" stroke-linecap="round"><line x1="0" y1="0" x2="-8" y2="-8"/><line x1="-13" y1="-4" x2="-4" y2="-13"/></g>',
   tape:CU_ARM+CU_HANDP+'<circle cx="-4" cy="-6" r="7" fill="none" stroke="#e8dcc0" stroke-width="4"/>',
-  foot:'<path d="M-14 -90 L10 -90 L10 -16 L-14 -16z" fill="'+CU_SIL+'"/><path d="M-30 -2 q0 -16 22 -16 l20 0 q14 0 14 10 l0 6 q0 4 -6 4 l-44 0 q-6 0 -6 -4z" fill="'+CU_SIL+'" stroke="'+CU_RIM+'" stroke-width="1.3"/><path d="M-14 -90 L-14 -18 M10 -90 L10 -18" stroke="'+CU_RIM+'" stroke-width="1" opacity=".6"/>'
+  foot:'<path d="M-3 -27 L-9 -112 L17 -112 L20 -27 Z" fill="'+CU_SIL+'" stroke="'+CU_RIM+'" stroke-width="1" stroke-linejoin="round"/><path d="M-4 -34 L19.6 -34" stroke="'+CU_RIM+'" stroke-width=".8" opacity=".5"/><path d="M19 -5 L19 -27 Q19 -32 13 -32 Q4 -33 -2 -29 L-11 -23 Q-23 -19.5 -32 -17 Q-40.5 -14.5 -40.5 -8.5 L-40.5 -5 Z" fill="'+CU_SIL+'" stroke="'+CU_RIM+'" stroke-width="1.2" stroke-linejoin="round"/><rect x="-42" y="-5.5" width="63" height="6" rx="2.8" fill="#2c2833" stroke="'+CU_RIM+'" stroke-width="1"/><path d="M-6 -25.5 l4 4.5 M-12.5 -21.5 l3.6 4.6 M-19 -18.6 l3 4.6 M-28 -5.5 Q-33 -11 -27 -16 M12 -31.5 Q9 -20 13 -6" stroke="'+CU_RIM+'" stroke-width=".8" fill="none" opacity=".55" stroke-linecap="round"/>',
 };
 const CU_SAY={guitar:'ギター返して!',keys:'キーボード返して!',drums:'ドラム返して!'};
 const cuBubble=(x,y,t)=>{const w=t.length*11+22;return '<g transform="translate('+x+' '+y+')"><g class="cu-bub"><rect x="'+(-w/2)+'" y="-15" width="'+w+'" height="26" rx="12" fill="#efe6d2" stroke="'+CU_INK+'" stroke-width="1.6"/><path d="M-10 10 l-6 12 l16 -12z" fill="#efe6d2" stroke="'+CU_INK+'" stroke-width="1.4" stroke-linejoin="round"/><rect x="-14" y="6" width="24" height="5" fill="#efe6d2"/>'+cuT(0,3,t,{s:12,c:CU_INK,f:'Shippori Mincho,serif',w:1})+'</g></g>'};
@@ -3454,11 +3470,11 @@ function endMC(msg){
 const ACT={
  l_bkick:'slide|LOWを少しだけ下げろ！|vol|輪郭が出た',l_bslap:'slide|GAINを少しだけ下げろ！|vol|割れが消えた',
  l_dbl:'timing|曲の切れ目で切り替えろ！||上のネックが鳴った',l_12str:'grab|切れた弦をよけろ！|〰|11本で鳴らし切った',
- l_mini:'slide|MIDを少しだけ上げろ！|vol|音が前に出た',l_reso:'slide|マイクから少し下がれ！|step|キンキンが止んだ|つまみを離して、緑の位置で止めろ。',
+ l_mini:'slide|MIDを少しだけ上げろ！|vol|音が前に出た',l_reso:'slide|マイクから少し下がれ！|step|キンキンが止んだ|白い丸を緑までドラッグして離せ。',
  l_fretless:'slide|針を真ん中に合わせろ！|tune|音程が合った',l_5str:'slide|LOWを少しだけ下げろ！|vol|揺れが収まった',
  l_violin:'grab|ネックを持ち上げろ！|🎻|構え直した',
  l_string:'grab|サブギターを掴め！|🎸|サブに持ち替えた',l_strap:'plug|ストラップをピンに掛けろ！|➰>📍|ピンにがっちり掛かった',
- l_tune:'slide|針を真ん中に合わせろ！|tune|ピタリと合った',l_howl:'slide|ハウらない位置まで下がれ！|step|ハウリングが止んだ|つまみを離して、緑の位置で止めろ。',
+ l_tune:'slide|針を真ん中に合わせろ！|tune|ピタリと合った',l_howl:'slide|ハウらない位置まで下がれ！|step|ハウリングが止んだ|白い丸を緑までドラッグして離せ。',
  l_pick:'grab|予備ピックを取れ！|🔺|ピックを掴んだ',l_cable:'plug|プラグをジャックへ！|🔌>⭕|カチッと挿さった',
  l_delay:'timing|曲の切れ目で踏め！||ディレイが止まった',l_sweat:'grab|替えのピックを取れ！|🔺|握り直した',
  l_bottle:'rub|ボードを拭け！|🧻|水気を拭き取った',l_loud:'slide|マスターを少しだけ下げろ！|vol|ちょうどいい音量',
@@ -3487,6 +3503,7 @@ const ACT={
  dl_pedal:'plug|ビーターを付け直せ！|🔨>⭕|キックが戻った',dl_floor:'rapid|脚のボルトを締めろ！|締める！|ガッチリ締まった',
  dl_spring:'plug|スプリングを掛け直せ！|➰>📍|ペダルが戻った',dl_choke:'beat|次の拍から立て直せ！|🥁|持ち直した',
  dl_count:'beat|カウントを出し直せ！|🥢|入り直せた',dl_ear:'plug|イヤモニを耳に戻せ！|🎧>👂|クリックが戻った'};
+const vib=ms=>{try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}};
 const MINI={
  timing(c){
   const zw=[34,30,26,22,18,16][c.lvn-1];const zl=15+Math.random()*(70-zw);const spd=[1.9,1.7,1.5,1.3,1.15,1.0][c.lvn-1]*1000;
@@ -3503,7 +3520,7 @@ const MINI={
   c.shell(c.how||'連打して回し切れ。時間は最初のタップから。','<div class="prog"><i></i></div><button class="btn primary big">'+esc(c.lab||'回す！')+'</button><div class="tm">0 / '+need+'</div>');
   let n=0,T0=0;const T00=performance.now();const pi=c.card.querySelector('.prog i'),tm=c.card.querySelector('.tm');
   const loop=()=>{if(c.over())return;const now=performance.now();if(!T0){if(now-T00>6000){c.fin(false,'手が出なかった');return}}else{const left=lim-(now-T0);if(left<=0){c.fin(false,'手が追いつかなかった');return}tm.textContent=n+' / '+need+'　残り '+(left/1000).toFixed(1)+'s'}requestAnimationFrame(loop)};
-  c.card.querySelector('.big').addEventListener('pointerdown',e=>{e.preventDefault();if(c.over())return;if(!T0)T0=performance.now();n++;pi.style.width=Math.min(100,n/need*100)+'%';if(n%3===0)sfxClick();if(n>=need)c.fin(true,c.ok)});
+  c.card.querySelector('.big').addEventListener('pointerdown',e=>{e.preventDefault();if(c.over())return;if(!T0)T0=performance.now();n++;pi.style.width=Math.min(100,n/need*100)+'%';sfxClick();vib(12);e.currentTarget.animate([{transform:'scale(.94)'},{transform:'scale(1)'}],{duration:110});if(n>=need)c.fin(true,c.ok)});
   requestAnimationFrame(loop);
  },
  rub(c){
@@ -3540,7 +3557,7 @@ const MINI={
  slide(c){
   const zw=[24,20,17,14,12,10][c.lvn-1];const kind=c.lab||'vol';
   const zl=kind==='tune'?50-zw/2:kind==='step'?20+Math.random()*30:52+Math.random()*(26-zw/2);const start=kind==='tune'?(Math.random()<.5?8:92):92;
-  const how=c.how||(kind==='tune'?'つまみをドラッグ。針が緑に入ったところで離せ。':'つまみをドラッグ。緑の位置で離せ。');
+  const how=c.how||(kind==='tune'?'白い丸をドラッグ。針が緑に入ったら離せ。':'白い丸を緑までドラッグして離せ。');
   c.shell(how,'<div class="track"><div class="zone" style="left:'+zl+'%;width:'+zw+'%"></div><div class="knob" style="left:'+start+'%"></div></div><div class="tm"></div>');
   const tr=c.card.querySelector('.track'),kn=tr.querySelector('.knob'),tm=c.card.querySelector('.tm');let drag=false,x=start,miss=0;const T0=performance.now(),lim=7000;
   const set=e=>{const r=tr.getBoundingClientRect();x=Math.max(0,Math.min(100,(e.clientX-r.left)/r.width*100));kn.style.left=x+'%'};
@@ -3556,7 +3573,7 @@ const MINI={
   c.shell(c.how||'光るリズムに合わせて4回タップ。','<button class="beat">'+esc(c.lab||'🥁')+'</button><div class="dots">○○○○</div>');
   const bt=c.card.querySelector('.beat'),dots=c.card.querySelector('.dots');const T0=performance.now();let taps=[],lastB=-1;
   const loop=()=>{if(c.over())return;const t=performance.now()-T0;const b=Math.floor(t/P);if(b!==lastB){lastB=b;bt.classList.add('on');setTimeout(()=>bt.classList.remove('on'),120)}if(t>9000){c.fin(false,'リズムを見失った');return}requestAnimationFrame(loop)};
-  bt.addEventListener('pointerdown',e=>{e.preventDefault();if(c.over())return;const t=(performance.now()-T0)%P;taps.push(t<=win*1.3||P-t<=win*.7);sfxClick();
+  bt.addEventListener('pointerdown',e=>{e.preventDefault();if(c.over())return;const t=(performance.now()-T0)%P;taps.push(t<=win*1.3||P-t<=win*.7);sfxClick();vib(12);
    dots.textContent=taps.map(g=>g?'●':'×').join('')+'○○○○'.slice(taps.length);
    if(taps.length>=4){const g=taps.filter(Boolean).length;g>=need?c.fin(true,c.ok):c.fin(false,'リズムがよれた')}});
   requestAnimationFrame(loop);
@@ -3594,7 +3611,7 @@ function fireEvent(ev){
   const runAct=o=>{
     done=true;card.style.animation='none';sfxClick();
     const A=(ACT[ev.id]||'timing|ここだ、合わせろ！').split('|');let over=false;
-    const fin=(ok,msg)=>{if(over)return;over=true;done=false;resolve(ok?Object.assign({},o,{t:o.t+'。'+msg}):{t:o.t+'。'+msg,ok:false})};
+    const fin=(ok,msg)=>{if(over)return;over=true;vib(ok?[18,50,28]:140);const h=card.querySelector('h3');if(h)h.textContent=ok?'✔ '+msg:'✖ '+msg;card.style.borderColor=ok?'var(--green)':'var(--red)';card.animate(ok?[{boxShadow:'0 0 0 0 rgba(95,242,138,.9)'},{boxShadow:'0 0 0 18px rgba(95,242,138,0)'}]:[{transform:'translateX(-7px)'},{transform:'translateX(7px)'},{transform:'translateX(0)'}],{duration:ok?420:260});setTimeout(()=>{done=false;resolve(ok?Object.assign({},o,{t:o.t+'。'+msg}):{t:o.t+'。'+msg,ok:false})},ok?520:420)};
     const shell=(how,body)=>{card.innerHTML='<div class="act"><div class="eyebrow" style="color:var(--green)">判断は正解 ─ 実行</div><h3>'+esc(A[1])+'</h3><p>'+esc(how)+'</p>'+body+'</div>'};
     (MINI[A[0]]||MINI.timing)({lvn:S.level.id,lab:A[2]||'',ok:A[3]||'切り抜けた',how:A[4]||'',card,shell,fin,over:()=>over});
   };
@@ -3758,6 +3775,7 @@ function startLevel(id,opts){
     S.deadline=performance.now()+lv.time*1000;renderTimer();
     note('状況',[(yaku?'今日は何もかもが壊れている気がする。症状は「':'症状は「')+sympText()+'」。']);
     timerId=setInterval(tick,100);bgmStart('invest');
+    if(lv.id===1&&!save.tut)tutStart();
   };
   if(opts.skipOpening){begin();return}
   heartStart(20);
@@ -3771,6 +3789,21 @@ function nodeTag(n){
    kb:['🎹','キーボード本体','#2a2630'],kpedal:['🦶','サスティン/ペダル','#333'],di:['📦','DI(信号を整える箱)','#a8541e'],snake:['🪢','スネーク(XLR)','#3a3a46'],
    kick:['🥁','バスドラ','#6a1a18'],snare:['🥁','スネア','#555'],hat:['🥁','ハイハット','#6a5418'],cym:['🥁','シンバル・タム','#6a5418'],mic:['🎤','マイク類','#444'],iem:['🎧','イヤモニ(クリック)','#1d4a5a']};
   const m=M[k]||['🎛',n.label,'#333'];return {i:m[0],t:m[1],c:m[2]};
+}
+// 初回だけ: 光る指で「機材をタップ→調べる」を見せる（文字なし）
+function tutStart(){
+  const el=document.createElement('div');el.id='tut';el.setAttribute('aria-hidden','true');
+  el.innerHTML='<svg viewBox="-10 -10 110 110" width="90" height="90"><g class="tut-tap">'+CU_HANDP+'</g></svg>';
+  document.body.appendChild(el);const k=90/110;let alive=true;
+  const nodeT=()=>{const ks=[...document.querySelectorAll('#scene [data-key]')];return ks.find(g=>g.dataset.key==='tuner')||ks.find(g=>g.dataset.key!=='pa')};
+  const end=()=>{alive=false;el.remove();document.removeEventListener('click',onClick,true);save.tut=1;persist()};
+  const onClick=e=>{if(e.target.closest('.sheet [data-act="inspect"]'))setTimeout(end,0)};
+  document.addEventListener('click',onClick,true);
+  const loop=()=>{if(!alive)return;if(!S||S.phase!=='invest'){alive=false;el.remove();document.removeEventListener('click',onClick,true);return}
+    const t=document.querySelector('.sheet [data-act="inspect"]')||(document.querySelector('.sheet')?null:nodeT());
+    if(t){const r=t.getBoundingClientRect();el.style.opacity=1;el.style.left=(r.left+r.width*.5-10*k)+'px';el.style.top=(r.top+r.height*.55-10*k)+'px'}else el.style.opacity=0;
+    requestAnimationFrame(loop)};
+  requestAnimationFrame(loop);
 }
 function showBriefing(done){
   heartStop();$('#opening').hidden=true;$('#timer').innerHTML='<small>SEが終わるまで</small>'+S.level.time.toFixed(1);
