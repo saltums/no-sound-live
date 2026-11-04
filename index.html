@@ -3639,7 +3639,7 @@ function showResult(playedLive){
     .concat(L.results.map(r=>({name:'[ライブ] '+r.ev.name,r:r.ev.r,truth:r.ev.truth,tip:r.ev.tip,ok:r.ok,isNew:newly.has(r.ev.id),where:'ライブ中'})));
   const ch=$('#chips');ch.classList.toggle('dense',S.resItems.length>10);ch.style.gridTemplateRows='repeat('+Math.max(1,Math.ceil(S.resItems.length/2))+',minmax(0,1fr))';
   ch.innerHTML=S.resItems.map((x,i)=>'<button class="chip '+(x.ok?'ok':'ng')+'" data-i="'+i+'"><span class="mk">'+(x.ok?'✔':'✖')+'</span><span class="t">'+esc(x.name)+'</span><span class="bd">'+(x.isNew?'<span class="nw">NEW</span>':'')+'<span class="s r'+x.r+'">'+RARITY[x.r].stars+'</span></span></button>').join('');
-  const txt='音が出ません！〜本番1分前の捜査線〜\n'+INST[S.inst].icon+INST[S.inst].label+' Lv.'+S.level.id+' '+S.level.name+' → '+rank+'\nトラブル'+total+'件中'+found+'件解決'+(rareList.length?'（レア'+rareList.length+'）':'')+'\n#音が出ません';
+  const txt='音が出ません！〜本番1分前の捜査線〜\n'+INST[S.inst].icon+INST[S.inst].label+' Lv.'+S.level.id+' '+S.level.name+' → '+rank+(pre.length?'\n原因は「'+pre.slice().sort((a,b)=>b.def.r-a.def.r)[0].def.name+'」だった。':'')+'\nトラブル'+total+'件中'+found+'件解決'+(rareList.length?'（レア'+rareList.length+'）':'')+'\n#音が出ません';
   const url=gameUrl();
   $('#shareText').value=txt+(url?'\n'+url:'');
   $('#btnX').href='https://x.com/intent/tweet?text='+encodeURIComponent(txt)+(url?'&url='+encodeURIComponent(url):'');
@@ -3831,7 +3831,7 @@ function playOpening(done){
 // ---------- events ----------
 $('#levels').addEventListener('click',e=>{const b=e.target.closest('[data-lv]');if(b){ac();sfxStage();startLevel(+b.dataset.lv,{inst:save.inst||'guitar',str:save.str})}});
 $('#btnExtend').addEventListener('click',extendTime);
-$('#btnStart').addEventListener('click',()=>{const b=$('#btnStart');if(b.classList.contains('in'))return;ac();sfxPlug();b.classList.add('in');setTimeout(()=>{b.classList.remove('in');renderParts();show('part')},520)});
+$('#btnStart').addEventListener('click',()=>{const b=$('#btnStart');if(b.classList.contains('in'))return;ac();sfxPlug();b.classList.add('in');setTimeout(()=>{b.classList.remove('in');if(!save.inst&&!Object.keys(save.best||{}).length){sfxStage();startLevel(1,{inst:'guitar',str:'elec'});return}renderParts();show('part')},520)});
 $('#btnPartBack').addEventListener('click',()=>{if(partMode==='str'){renderParts();return}show('title')});
 $('#pcards').addEventListener('click',e=>{const sc=e.target.closest('[data-str]');if(sc){save.inst='guitar';save.str=sc.dataset.str;persist();ac();sfxStage();renderTitle();show('select');return}
   const c=e.target.closest('[data-inst]');if(!c)return;if(c.dataset.inst==='guitar'){ac();sfxClick();renderParts('str');return}save.inst=c.dataset.inst;persist();ac();sfxStage();renderTitle();show('select')});
