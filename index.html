@@ -597,6 +597,12 @@ b.lk.f{color:var(--green)}
 .resbar .btn{display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap}
 .resbar .bi{width:15px;height:15px;flex:none}
 .resbar .fun .ic{width:13px;height:15px}
+
+/* 図鑑・結果の詳細の見出し */
+h3.ih{margin:0;line-height:1.35}
+.ih-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-top:6px}
+.ih-row .ih-sub{font-size:13px;color:var(--fg2);margin-right:2px}
+.ih-row .stt{margin:0}
 </style>
 
 <section id="splash" class="full"><button class="splashbtn" id="btnSplash">ゲームをはじめる</button><p class="splashnote" id="silentNote">🔈 このゲームは音が出ます<br>音ありで遊ぶのがおすすめ</p></section>
@@ -3906,7 +3912,9 @@ function renderZukan(){
 }
 function infoSheet(title,badge,bodyHtml){
   const sh=document.createElement('div');sh.className='sheet';
-  sh.innerHTML='<div class="card"><h3>'+esc(title)+(badge||'')+'</h3><div class="ev" style="margin-top:10px">'+bodyHtml+'</div><button class="btn ghost full close">閉じる</button></div>';
+  // 機材名は「 ─ 」の後ろを小さい2行目に分けて、見出しを短くする
+  const ix=title.indexOf(' ─ '),main=ix<0?title:title.slice(0,ix),sub=ix<0?'':title.slice(ix+3);
+  sh.innerHTML='<div class="card"><h3 class="ih">'+esc(main)+'</h3><div class="ih-row">'+(sub?'<span class="ih-sub">'+esc(sub)+'</span>':'')+(badge||'')+'</div><div class="ev" style="margin-top:10px">'+bodyHtml+'</div><button class="btn ghost full close">閉じる</button></div>';
   sh.addEventListener('click',e=>{if(e.target.closest('.close')||e.target===sh)sh.remove()});
   document.body.appendChild(sh);
 }
