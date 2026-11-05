@@ -518,6 +518,9 @@ body{word-break:keep-all;overflow-wrap:anywhere;line-break:strict}
 #tut .tut-tap{animation:tutTap 1s ease-in-out infinite}
 @keyframes tutTap{0%,100%{transform:translate(9px,9px)}50%{transform:translate(0,0)}}
 @media (prefers-reduced-motion:reduce){#tut .tut-tap{animation:none}}
+.sheet.brief{align-items:center}
+.sheet.brief .card{border-radius:16px;border:2px solid var(--amber);width:calc(100% - 32px);max-width:520px;padding-bottom:16px}
+.brief .bl span .jp,.brief .bl span span{background:none;border:0;padding:0;border-radius:0}
 </style>
 
 <section id="splash" class="full"><button class="splashbtn" id="btnSplash">ゲームをはじめる</button></section>
@@ -3864,10 +3867,12 @@ function playOpening(done){
 // ---------- events ----------
 $('#levels').addEventListener('click',e=>{const b=e.target.closest('[data-lv]');if(b){ac();sfxStage();startLevel(+b.dataset.lv,{inst:save.inst||'guitar',str:save.str})}});
 $('#btnExtend').addEventListener('click',extendTime);
-$('#btnStart').addEventListener('click',()=>{const b=$('#btnStart');if(b.classList.contains('in'))return;ac();sfxPlug();b.classList.add('in');setTimeout(()=>{b.classList.remove('in');if(!save.inst&&!Object.keys(save.best||{}).length){sfxStage();startLevel(1,{inst:'guitar',str:'elec'});return}renderParts();show('part')},520)});
+$('#btnStart').addEventListener('click',()=>{const b=$('#btnStart');if(b.classList.contains('in'))return;ac();sfxPlug();b.classList.add('in');setTimeout(()=>{b.classList.remove('in');renderParts();show('part')},520)});
 $('#btnPartBack').addEventListener('click',()=>{if(partMode==='str'){renderParts();return}show('title')});
-$('#pcards').addEventListener('click',e=>{const sc=e.target.closest('[data-str]');if(sc){save.inst='guitar';save.str=sc.dataset.str;persist();ac();sfxStage();renderTitle();show('select');return}
-  const c=e.target.closest('[data-inst]');if(!c)return;if(c.dataset.inst==='guitar'){ac();sfxClick();renderParts('str');return}save.inst=c.dataset.inst;persist();ac();sfxStage();renderTitle();show('select')});
+$('#pcards').addEventListener('click',e=>{const sc=e.target.closest('[data-str]');if(sc){save.inst='guitar';save.str=sc.dataset.str;persist();ac();sfxStage();goSel();return}
+  const c=e.target.closest('[data-inst]');if(!c)return;if(c.dataset.inst==='guitar'){ac();sfxClick();renderParts('str');return}save.inst=c.dataset.inst;persist();ac();sfxStage();goSel()});
+// 初めての人はパートを選んだら、そのまま初ライブへ
+function goSel(){if(!Object.keys(save.best||{}).length){startLevel(1,{inst:save.inst||'guitar',str:save.str});return}renderTitle();show('select')}
 $('#btnSelBack').addEventListener('click',()=>{renderParts(save.inst==='guitar'?'str':'');show('part')});
 $('#btnZukan').addEventListener('click',()=>zukanOpen('part'));
 $('#zfil').addEventListener('click',e=>{const t=e.target.closest('[data-zi]');if(t){zInst=t.dataset.zi;zPage=0;zOnly=zukanAll().some(x=>(x.inst===zInst||x.inst==='all')&&zFound(x));renderZukan();return}if(e.target.closest('#zOnly')){zOnly=!zOnly;zPage=0;renderZukan()}});
