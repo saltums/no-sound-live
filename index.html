@@ -567,7 +567,7 @@ body{word-break:keep-all;overflow-wrap:anywhere;line-break:strict}
 @media (prefers-reduced-motion:reduce){#result.run *{animation:none!important}.res-tick>span{animation:none}}
 
 /* 無駄機能: ピック投げ・乾杯 */
-.resbar .fun{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px;min-width:0}
+.resbar .fun{grid-column:span 2;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px;min-width:0}
 .resbar .fun .btn{padding:9px 2px;font-size:12px;border-style:dashed;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:2px}
 .resbar .fun .ic{width:12px;height:14px;flex:none}
 #result{position:relative}
@@ -687,7 +687,6 @@ body{word-break:keep-all;overflow-wrap:anywhere;line-break:strict}
     <button class="btn primary" id="btnRetry">もう一度</button>
     <button class="btn" id="btnResZukan">図鑑</button>
     <a class="btn" id="btnX" href="#" target="_blank" rel="noopener">Xに投稿</a>
-    <button class="btn" id="btnCopy">コピー</button>
     <button class="btn ghost" id="btnHome">ステージ選択</button>
     <div class="fun"><button class="btn ghost" id="btnThrow">ピック投げ</button><button class="btn ghost" id="btnCheers">乾杯</button></div>
   </div>
@@ -4074,12 +4073,6 @@ $('#noteToggle').addEventListener('click',openLog);
 $('#btnRetry').addEventListener('click',()=>startLevel(S.level.id,{inst:S.inst,str:S.str}));
 $('#btnHome').addEventListener('click',()=>{bgmStop();heartStop();renderTitle();show('select')});
 function gameUrl(){try{return /\.github\.io$/.test(location.hostname)?location.origin+location.pathname.replace(/index\.html$/,''):''}catch(e){return ''}}
-$('#btnCopy').addEventListener('click',()=>{
-  const ta=$('#shareText');const b=$('#btnCopy');
-  const ok=()=>{b.textContent='コピーした';setTimeout(()=>b.textContent='コピー',1500)};
-  const fb=()=>{try{ta.hidden=false;ta.select();document.execCommand('copy')}catch(e){}ta.hidden=true;ok()};
-  try{navigator.clipboard.writeText(ta.value).then(ok).catch(fb)}catch(e){fb()}
-});
 
 
 // ---------- Japanese phrase wrapping: each bunsetsu goes in a nowrap span, with <wbr> between them, for every text node that appears ----------
