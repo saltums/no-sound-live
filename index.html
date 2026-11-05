@@ -743,6 +743,23 @@ const ODD_PEDALS=[
  {id:'gf',name:'ヴィンテージ ゲルマ・ファズ(電池専用)',type:'germ',short:'GERM',col:'#8a8f98',odd:true},
  {id:'rd',name:'AMラジオ・ディストーション(謎の中古)',type:'radio',short:'AM',col:'#7b4a2a',odd:true},
 ];
+// 弦楽器ごとの足元: ベースはベース用、アコギはアコギ用のペダルを並べる（トラブルは種類(type)で当てる）
+const PD=id=>PEDALS.find(p=>p.id===id);
+const BASS_PEDALS=[
+ {id:'bcmp',name:'BOSU ベースコンプ LMB-3.5',type:'comp',short:'BCMP',col:'#2a5fa8'},
+ {id:'b7k',name:'ダークグロス B7K(ベース用ドライブ)',type:'od',short:'B7K',col:'#3a3a3e'},
+ {id:'boc',name:'BOSU オクターブ OC-5.5',type:'oct',short:'OCT',col:'#6a2f9a'},
+ {id:'bqt',name:'エレクトロ・ハーモニクス Qトロン(フィルター)',type:'mod',short:'FLT',col:'#c9c9cf'},
+ {id:'bch',name:'BOSU ベースコーラス CEB-3.5',type:'chorus',short:'BCH',col:'#3fa6c8'},
+ {id:'beq',name:'BOSU ベースEQ GEB-7.5',type:'eq',short:'BEQ',col:'#2a7f9f'},
+ PD('ns'),PD('vol'),PD('muff'),
+];
+const AC_PEDALS=[
+ {id:'apre',name:'エルアール・バックス ヴェニュー(アコギ用プリアンプ)',type:'eq',short:'PRE',col:'#2b2b2b'},
+ {id:'aac',name:'BOSU アコースティック AC-3.5',type:'boost',short:'AC',col:'#a4703a'},
+ PD('comp'),PD('ch'),PD('rv'),PD('dd'),PD('bst'),PD('vol'),PD('lp'),
+];
+const pedalsOf=st=>st==='bass'?BASS_PEDALS:st==='ac'?AC_PEDALS:PEDALS;
 const ODD_FIX={diy:[],v18:['pd_18v'],toy:['pd_lid'],germ:['pd_shade','pd_battmode'],radio:['pd_tune']};
 const KNOB_LABEL={delay:'F.BACKを戻す',gate:'THRESHOLDを下げる',vol:'つま先側まで踏み込む',wah:'踏み切ってスイッチを切る',od:'LEVELを戻す',dist:'LEVELを戻す',fuzz:'LEVELを戻す',mod:'LEVELを戻す',comp:'LEVELを戻す',chorus:'LEVELを戻す',oct:'LEVELを戻す',boost:'LEVELを戻す',reverb:'MIXを戻す',trem:'DEPTHを戻す',eq:'スライダーを戻す',multi:'パッチを選び直す',diy:'LEVELを戻す',v18:'LEVELを戻す',toy:'LEVELを戻す',germ:'LEVELを戻す',radio:'LEVELを戻す'};
 const FIXES={
@@ -1049,9 +1066,10 @@ function buildGear(level,instKind,str){
   const gt=(gRare.length&&Math.random()<.08)?pick(gRare):pick(gPool.filter(g=>!g.rare));
   const ampPool=AMPS.filter(a=>st==='bass'?a.bass:st==='ac'?a.ac:!a.ac&&!a.bass);
   const gear={tuner:pick(TUNERS),guitar:gt,cableA:pick(CABLES),cableB:pick(CABLES),psu:pick(PSUS),amp:pick(ampPool)};
-  gear.odd=level.id>=3&&Math.random()<.4;
+  const PP=pedalsOf(st),oddOK=st!=='ac',PPall=PP.concat(oddOK?ODD_PEDALS:[]);gear.ped=st;
+  gear.odd=oddOK&&level.id>=3&&Math.random()<.4;
   // choose faults compatible with gear
-  const pool=FAULTS.filter(f=>!f.req||f.req(gear));
+  const pool=FAULTS.filter(f=>(!f.req||f.req(gear))&&(f.node!=='pedal'||!f.ptypes||PPall.some(p=>f.ptypes.includes(p.type))));
   const w=f=>{const base={1:10,2:5,3:2,4:1}[f.r];const mx=level.mix||0;return (base+(f.r===2?level.boost:0)+(f.r===3?level.boost*1.5:0))*(f.sym==='silent'?1/(1+mx):1+mx*2)};
   const chosen=[];const usedFix=new Set();const usedNode={};
   let guard=0;
@@ -1069,10 +1087,10 @@ function buildGear(level,instKind,str){
     chosen.push(f);usedFix.add(f.node+fk);usedNode[f.node]=(usedNode[f.node]||0)+1;
   }
   // board: tuner + pedals (ensure needed pedal types)
-  const need=chosen.filter(f=>f.need).map(f=>f.need);
-  let board=PEDALS.concat(ODD_PEDALS).filter(p=>need.includes(p.id));
+  let board=[];
+  chosen.filter(f=>f.need||f.ptypes).sort((a,b)=>(b.need?1:0)-(a.need?1:0)).forEach(f=>{const c=PPall.filter(p=>!board.includes(p)&&(p.id===f.need||(f.ptypes&&f.ptypes.includes(p.type))));if(c.length)board.push(c.find(p=>p.id===f.need)||pick(c))});
   if(gear.odd&&!board.some(p=>p.odd))board.push(pick(ODD_PEDALS));
-  const rest=shuffle(PEDALS.filter(p=>!board.includes(p)));
+  const rest=shuffle(PP.filter(p=>!board.includes(p)));
   while(board.length<4)board.push(rest.pop());
   board=shuffle(board);
   // keep volume pedal late in chain, tuner first (handled in nodes)
@@ -1081,7 +1099,8 @@ function buildGear(level,instKind,str){
   const taken=new Set();
   const inst=[];
   // 機材の種類が決まっているトラブルから先にペダルを割り当てる（汎用のトラブルに取られないように）
-  for(const f of chosen.slice().sort((a,b)=>(b.ptypes?1:0)-(a.ptypes?1:0))){
+  const nC=f=>f.ptypes?board.filter(p=>f.ptypes.includes(p.type)).length:99;
+  for(const f of chosen.slice().sort((a,b)=>nC(a)-nC(b))){
     const o={def:f,id:f.id,active:true,node:f.node,pedal:null};
     if(f.node==='pedal'){
       let cands=board.filter(p=>!taken.has(p.id)&&(!f.ptypes||f.ptypes.includes(p.type)));
@@ -3428,7 +3447,7 @@ function setMood(){const L=S.live;const m=$('#mood');const moods=['最高潮','�
 function pickMcFault(){
   const lv=S.level;const used=new Set(S.faults.map(f=>f.id));const g=S.gear;
   const keys=new Set(S.nodes.map(n=>n.key));
-  const okPedal=f=>(!f.need||g.board.some(p=>p.id===f.need))&&g.board.some(p=>!f.ptypes||f.ptypes.includes(p.type));
+  const okPedal=f=>g.board.some(p=>!f.ptypes||f.ptypes.includes(p.type));
   let c=(FAULTS_BY[S.inst]||FAULTS).filter(f=>!used.has(f.id)&&!f.perc&&(!f.req||f.req(g))&&(f.node==='pedal'?okPedal(f):keys.has(f.node)));
   if(!c.length)return null;
   const prev=new Set(S.faults.filter(x=>x.mc).map(x=>x.def.node));
@@ -3800,12 +3819,12 @@ function nodeTag(n){
 function tutStart(){
   const el=document.createElement('div');el.id='tut';el.setAttribute('aria-hidden','true');
   el.innerHTML='<svg viewBox="-10 -10 110 110" width="90" height="90"><g class="tut-tap">'+CU_HANDP+'</g></svg>';
-  document.body.appendChild(el);const k=90/110;let alive=true;
+  document.querySelectorAll('#tut').forEach(x=>x.remove());document.body.appendChild(el);const k=90/110,S0=S;let alive=true;
   const nodeT=()=>{const ks=[...document.querySelectorAll('#scene [data-key]')];return ks.find(g=>g.dataset.key==='tuner')||ks.find(g=>g.dataset.key!=='pa')};
   const end=()=>{alive=false;el.remove();document.removeEventListener('click',onClick,true);save.tut=1;persist()};
   const onClick=e=>{if(e.target.closest('.sheet [data-act="inspect"]'))setTimeout(end,0)};
   document.addEventListener('click',onClick,true);
-  const loop=()=>{if(!alive)return;if(!S||S.phase!=='invest'){alive=false;el.remove();document.removeEventListener('click',onClick,true);return}
+  const loop=()=>{if(!alive)return;if(!S||S!==S0||S.phase!=='invest'){alive=false;el.remove();document.removeEventListener('click',onClick,true);return}
     const t=document.querySelector('.sheet [data-act="inspect"]')||(document.querySelector('.sheet')?null:nodeT());
     if(t){const r=t.getBoundingClientRect();el.style.opacity=1;el.style.left=(r.left+r.width*.5-10*k)+'px';el.style.top=(r.top+r.height*.55-10*k)+'px'}else el.style.opacity=0;
     requestAnimationFrame(loop)};
