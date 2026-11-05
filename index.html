@@ -1291,7 +1291,7 @@ function evidenceAlt(node){
   const none=t=>{if(!fs.length||fs.every(hiddenNow))L.push(t)};
   const k=node.key;
   if(S.inst==='keys'){
-    if(k==='self'){L.push('手汗がすごい。心拍は速い。');(S.quips||[]).forEach(q=>L.push(q));if(S.quips&&S.quips.length)L.push('……いや、今それは関係ない。');add()}
+    if(k==='self'){L.push('自分だ。正直焦っている。');add()}
     else if(k==='kb'){L.push(g.kb.name+'。');add();none('電源も、ボリュームも、設定も、見た目は正常。')}
     else if(k==='pedal'){L.push(g.sus+'(+エクスプレッションペダル)。');add();none('踏むと、ちゃんと動く。')}
     else if(k==='cableA'){L.push(g.cableA+'、3m。');add();none('プラグも根元も、異常なし。')}
@@ -1299,7 +1299,7 @@ function evidenceAlt(node){
     else if(k==='snake'){L.push(g.snake+'。ステージボックスまで這っている。');add();none('両端ともロックされている。')}
     else if(k==='pa'){L.push('SEは客席に流れている。PAは生きている。');if(has('k_earplug'))L.push('…SEの音が、妙にこもって遠い。');L.push(reaches(node.pos)?'キーボードのチャンネルのメーターは振れている。':'キーボードのチャンネルのメーターが振れない。信号が来ていない。');add()}
   }else{
-    if(k==='self'){L.push('手汗がすごい。心拍は速い。');(S.quips||[]).forEach(q=>L.push(q));if(S.quips&&S.quips.length)L.push('……いや、今それは関係ない。');add();none('スローンの高さも、スティックも問題ない。')}
+    if(k==='self'){L.push('自分だ。正直焦っている。');add();none('スローンの高さも、スティックも問題ない。')}
     else if(k==='kick'){L.push('バスドラ。ペダルは'+g.kpedal+'。');add();none('踏んでみる。生音はちゃんと鳴っている。')}
     else if(k==='snare'){L.push('スネア。');add();none('叩いてみる。生音はちゃんと鳴っている。')}
     else if(k==='hat'){L.push('ハイハット。');add();none('踏んで叩く。ちゃんと開いて閉じる。生音は正常だ。')}
@@ -1436,7 +1436,7 @@ function evidence(node){
   const di=!!g.amp.di;const fe=f=>{let t=f.def.ev.replace('{pedal}',f.pedal?f.pedal.name:'');if(di)t=t.replace('アンプ側','DI側').replace('ペダルもアンプも','ペダルも');return evLine(f,t)};
   switch(node.kind){
     case 'self':
-      L.push('手汗がすごい。心拍は速い。');(S.quips||[]).forEach(q=>L.push(q));if(S.quips&&S.quips.length)L.push('……いや、今それは関係ない。')
+      L.push('自分だ。正直焦っている。')
       if(has('pa_mon'))L.push('アンプの前に立っていない。モニターの前にいる。');
       fs.forEach(f=>L.push(fe(f)));break;
     case 'guitar':
