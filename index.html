@@ -3303,6 +3303,7 @@ function cuAct(key,fix,sh,render){
   else if(who==='pa'){inner=CU_ACTOR.hand;from=[0,-110]}
   else if(who==='breath'){inner=''}
   else inner=(who==='hand'&&/^[rxy]$/.test(tryT||''))?CU_ACTOR.pinch:(CU_ACTOR[who]||CU_ACTOR.hand);
+  if((n.kind||n.key)==='self'&&inner)inner='<g transform="scale(.58)">'+inner+'</g>';// 顔に対して手が大きすぎないように
   const flip=who!=='foot'&&pt[0]>220;
   if(who==='pa'){ac.innerHTML='<g transform="rotate(180) scale(-1 1)">'+inner+'</g>'}else ac.innerHTML='<g'+(flip?' transform="scale(-1 1)"':'')+'>'+inner+'</g>';
   if(flip)from=[-from[0],from[1]];
