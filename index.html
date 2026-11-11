@@ -1947,6 +1947,26 @@ LIVE_EVENTS.push(...KEYS_EV,...DRUMS_EV);
 Object.assign(LIVE_AT,{kl_sustain:'pedal',kl_patch:'kb',kl_stand:'kb',kl_sheet:'self',kl_ac:'kb',kl_drink:'kb',kl_hum:'di',kl_loud:'pa',kl_mon:'pa',kl_freeze:'kb',kl_sync:'kb',
  dl_stick:'self',dl_snaretune:'snare',dl_kick_slide:'kick',dl_hat_down:'hat',dl_cym_fall:'cym',dl_head:'snare',dl_click:'iem',dl_throne:'self',dl_sweat:'self',dl_loud:'pa',dl_mon:'pa',dl_mic:'mic',dl_pedal:'kick'});
 
+// ---------- 追加の演奏トラブル（2026-11-11 パターン増量: 鍵盤・ドラムが少なかった分と、全パート共通） ----------
+const MORE_EV=[
+ {inst:'keys',id:'kl_page',r:1,name:'譜面台の譜面がめくれた',text:'エアコンの風で、譜面が3ページ先まで飛んだ。',opts:[{t:'手のひらで押さえて戻す',ok:true},{t:'めくれたページを弾く'},{t:'譜面を床に捨てる'}],truth:'ステージのエアコンは、ちょうど譜面台に当たる。',tip:'譜面はクリップで留めておく。'},
+ {inst:'keys',id:'kl_split',r:2,name:'スプリットの位置がずれた',text:'左手のベースが、なぜかストリングスで鳴っている。',opts:[{t:'曲間にスプリットを呼び直す',ok:true},{t:'左手を弾かない'},{t:'ストリングスのまま押し切る'}],truth:'パネルに肘が当たって、スプリットポイントが動いた。',tip:'本番前にパネルロックを掛ける。'},
+ {inst:'keys',id:'kl_mod',r:2,name:'モジュレーションが上がりっぱなし',text:'全部の音が、ビブラートでうねっている。',opts:[{t:'モジュレーションホイールを下げる',ok:true},{t:'うねりに合わせて揺れる'},{t:'電源を切る'}],truth:'袖がホイールに引っかかって、上まで回っていた。',tip:'ホイールは曲が終わるたびに戻す。'},
+ {inst:'keys',id:'kl_bend',r:1,name:'ピッチベンドが戻らない',text:'和音が全部、半音下がったまま鳴っている。',opts:[{t:'ベンドを真ん中に戻す',ok:true},{t:'半音上を弾いてごまかす'},{t:'そのまま弾く'}],truth:'バネの弱ったベンダーは、真ん中に戻りきらない。',tip:'ベンドを使ったら、指で真ん中に戻す。'},
+ {inst:'keys',id:'kl_mute',r:3,name:'ローカルオフで無音',text:'鍵盤を弾いても、自分の音だけ鳴らない。画面には「LOCAL OFF」。',opts:[{t:'ローカルをONに戻す',ok:true},{t:'強く弾く'},{t:'隣の鍵盤を弾く'}],truth:'MIDI設定をいじったとき、ローカルをOFFにしたままだった。',tip:'MIDIを使わない日は、ローカルONを確認する。'},
+ {inst:'keys',id:'kl_bench',r:1,name:'椅子の高さが合わない',text:'座ったら、鍵盤が胸の高さにある。前のバンドの椅子のままだ。',opts:[{t:'曲間に高さを直す',ok:true},{t:'立って弾く'},{t:'そのまま背伸びする'}],truth:'対バンのキーボーディストは、とても背が高かった。',tip:'転換で真っ先に椅子の高さを合わせる。'},
+ {inst:'drums',id:'dl_rim',r:1,name:'リムショットが空振り',text:'決めのリムショットで、スティックが空を切った。',opts:[{t:'次の小節で決め直す',ok:true},{t:'もう一回同じところを叩く'},{t:'叩くのをやめる'}],truth:'スネアの位置が、リハより少し遠くなっていた。',tip:'セッティングは、座って叩く姿勢で確かめる。'},
+ {inst:'drums',id:'dl_tomfall',r:2,name:'タムが傾いてきた',text:'叩くたびに、タムが少しずつこちらを向いてくる。',opts:[{t:'曲間にホルダーを締める',ok:true},{t:'傾いたまま叩き続ける'},{t:'タムを叩かない'}],truth:'ホルダーのネジが、振動で少しずつ緩んでいた。',tip:'ネジは本番前に一周締め直す。'},
+ {inst:'drums',id:'dl_towel',r:1,name:'タオルがスネアに落ちた',text:'首に掛けたタオルが、スネアの上に落ちた。音がボスッとこもる。',opts:[{t:'片手でタオルを払う',ok:true},{t:'タオルごと叩く'},{t:'演奏を止めて拾う'}],truth:'激しいフィルで、タオルが首から落ちた。',tip:'タオルはフロアタムの横に掛けておく。'},
+ {inst:'drums',id:'dl_tempo',r:2,name:'テンポが走り出した',text:'サビで盛り上がって、気づけばテンポがどんどん上がっている。',opts:[{t:'ベースを聴いて落ち着く',ok:true},{t:'もっと走る'},{t:'急に止まる'}],truth:'客席が盛り上がると、ドラマーは走る。',tip:'サビ前に一度、ベースの人を見る。'},
+ {inst:'drums',id:'dl_crashhit',r:3,name:'クラッシュで照明を叩いた',text:'思い切り振りかぶったら、低い照明にスティックが当たった。',opts:[{t:'何事もなかったように叩き続ける',ok:true},{t:'照明を見上げる'},{t:'もう一回振りかぶる'}],truth:'小さなハコの天井は、ドラマーが思うより低い。',tip:'リハで一度、思い切り振りかぶってみる。'},
+ {inst:'all',id:'al_lyrics',r:1,name:'ボーカルが歌詞を飛ばした',text:'ボーカルが固まった。2番の歌詞が出てこないらしい。',opts:[{t:'同じフレーズを繰り返して待つ',ok:true},{t:'演奏を止める'},{t:'代わりに歌う'}],truth:'緊張すると、2番の頭は消える。',tip:'2番の入りだけは、バンド全員で覚えておく。'},
+ {inst:'all',id:'al_fan',r:2,name:'客席から差し入れが飛んできた',text:'曲の途中で、ステージにお菓子の袋が投げ込まれた。',opts:[{t:'笑顔で会釈して弾き続ける',ok:true},{t:'拾って開ける'},{t:'投げ返す'}],truth:'気持ちはうれしい。でも投げ込みは危ない。',tip:'差し入れは終演後に受け取ると伝えておく。'},
+ {inst:'all',id:'al_light',r:2,name:'照明が全部消えた',text:'ブレイクの瞬間、照明が落ちた。真っ暗で手元が見えない。',opts:[{t:'手の感覚で弾き続ける',ok:true},{t:'スマホのライトをつける'},{t:'止まって待つ'}],truth:'照明さんが、ブレイクを曲の終わりと勘違いした。',tip:'暗転のタイミングは、セトリに書いて渡す。'},
+];
+MORE_EV.forEach(e=>{if(!LIVE_EVENTS.some(x=>x.id===e.id))LIVE_EVENTS.push(e)});
+Object.assign(LIVE_AT,{kl_page:'self',kl_split:'kb',kl_mod:'kb',kl_bend:'kb',kl_mute:'kb',kl_bench:'self',dl_rim:'snare',dl_tomfall:'self',dl_towel:'snare',dl_tempo:'self',dl_crashhit:'cym',al_lyrics:'self',al_fan:'self',al_light:'self'});
+
 // ---------- 絵柄D（調書）: ステージの絵を鉛筆線＋淡彩に変換 ----------
 const SK_INK='#141116';
 const SK_DEFS='<defs>'+
@@ -3712,6 +3732,11 @@ const ACT={
  dl_pedal:'plug|ビーターを付け直せ！|🔨>⭕|キックが戻った',dl_floor:'rapid|脚のボルトを締めろ！|締める！|ガッチリ締まった',
  dl_spring:'plug|スプリングを掛け直せ！|➰>📍|ペダルが戻った',dl_choke:'beat|次の拍から立て直せ！|🥁|持ち直した',
  dl_count:'beat|カウントを出し直せ！|🥢|入り直せた',dl_ear:'plug|イヤモニを耳に戻せ！|🎧>👂|クリックが戻った'};
+Object.assign(ACT,{kl_page:'hold|譜面を押さえろ！|押さえる|譜面が戻った',kl_split:'timing|曲の切れ目で呼び直せ！||左手が戻った',kl_mod:'slide|ホイールを下まで戻せ！|vol|うねりが止まった',
+ kl_bend:'slide|ベンドを真ん中へ！|tune|音程が戻った',kl_mute:'grab|LOCALボタンを押せ！|LOCAL|音が出た',kl_bench:'rapid|ノブを回して高さを直せ！|回す！|ちょうどいい高さ',
+ dl_rim:'timing|次の小節の頭で決めろ！||リムが決まった',dl_tomfall:'rapid|ホルダーを締めろ！|締める！|タムが止まった',dl_towel:'rub|タオルを払いのけろ！|🧻|スネアが鳴った|指で左右に振って、払え。',
+ dl_tempo:'beat|ベースに合わせて刻め！|🥁|テンポが落ち着いた',dl_crashhit:'beat|何事もなかったように刻め！|🥁|誰も気づかなかった',
+ al_lyrics:'beat|同じフレーズで待て！|🔁|ボーカルが戻ってきた',al_fan:'timing|目が合った瞬間に会釈！||客席が沸いた',al_light:'beat|手の感覚で刻み続けろ！|✋|照明が戻った'});
 const vib=ms=>{try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}};
 const MINI={
  timing(c){
@@ -3842,13 +3867,18 @@ function showResult(playedLive){
   const found=preSolved+L.hit;
   const rareList=pre.filter(f=>f.def.r>=3).map(f=>f.def).concat(L.results.filter(r=>r.ev.r>=3).map(r=>r.ev));
   let rank,cls,line;
-  if(!playedLive){rank='中止';cls='b';line='音が出ないまま、1曲目が始まった。'}
+  const RL={中止:['音が出ないまま、1曲目が始まった。','ボーカルがアカペラで歌い始めた。','客席が、ざわついている。','PAさんが、静かに首を振った。'],
+    PERFECT:['完璧な進行。PAさんがサムズアップしている。','アンコールの声が止まらない。','対バンの人が「今日よかった」と言いに来た。','物販の前に列ができている。'],
+    GOOD:['一度グダったが、持ち直した。','ちょっと危なかった。でも客席は笑顔だ。','MCで「今のは演出です」と言い切った。','終わりよければ、だいたいよし。'],
+    まあまあ:['二度グダった。MCで笑いに変えよう。','友達は「よかったよ」と言ってくれた。たぶん優しさだ。','楽屋の空気が、少しだけ重い。','次のスタジオ練習の日程を決めよう。'],
+    グダグダ:['打ち上げで反省会だ。','ボーカルと目が合わない。','物販のTシャツが、1枚も売れなかった。','帰りの機材車が、やけに静かだ。']};
+  if(!playedLive){rank='中止';cls='b';line=pick(RL.中止)}
   const mm=L.miss+(S.extended?1:0);
   if(!playedLive){}
-  else if(mm===0){rank='PERFECT';cls='p';line='完璧な進行。PAさんがサムズアップしている。'}
-  else if(mm===1){rank='GOOD';cls='g';line=S.extended&&!L.miss?'無事に終えた。ただ、スタッフに時間を延ばしてもらった。':'一度グダったが、持ち直した。'}
-  else if(mm===2){rank='まあまあ';cls='m';line='二度グダった。MCで笑いに変えよう。'}
-  else{rank='グダグダ';cls='b';line='打ち上げで反省会だ。'}
+  else if(mm===0){rank='PERFECT';cls='p';line=pick(RL.PERFECT)}
+  else if(mm===1){rank='GOOD';cls='g';line=S.extended&&!L.miss?'無事に終えた。ただ、スタッフに時間を延ばしてもらった。':pick(RL.GOOD)}
+  else if(mm===2){rank='まあまあ';cls='m';line=pick(RL.まあまあ)}
+  else{rank='グダグダ';cls='b';line=pick(RL.グダグダ)}
   $('#rank').textContent=rank;$('#rank').className='rank '+cls;$('#rankline').textContent=line;
   const causeTxt=pre.length?'原因は「'+pre.slice().sort((a,b)=>b.def.r-a.def.r)[0].def.name+'」だった ／ ':'';
   $('#resEyebrow').textContent='RESULT ─ '+INST[S.inst].icon+' Lv.'+S.level.id+' '+S.level.name+(S.yaku?' (厄日)':'')+(S.gear.guitar&&S.gear.guitar.rare?' ／ レア楽器 '+S.gear.guitar.name.replace(/\(.*\)/,''):'');
