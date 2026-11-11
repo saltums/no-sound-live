@@ -608,6 +608,16 @@ h3.ih{margin:0;line-height:1.35}
 .ih-row .stt{margin:0}
 
 .zcredit{text-align:center;font-family:var(--led);font-size:11px;color:var(--fg2);opacity:.7;letter-spacing:.08em;flex:none}
+
+/* 結果: のこり秒と自己ベスト */
+.restime{display:flex;align-items:baseline;justify-content:center;gap:4px;flex-wrap:wrap;min-height:0}
+.restime:empty{display:none}
+.restime .k{font-size:12px;color:var(--fg2)}
+.restime .v{font-family:var(--led);font-size:22px;color:var(--amber2)}
+.restime .nb{margin-left:8px;font-size:12px;font-weight:700;color:#1a1006;background:var(--green);border-radius:999px;padding:2px 10px;animation:nbPop .5s 2.2s both}
+@keyframes nbPop{0%{opacity:0;transform:scale(.4)}70%{transform:scale(1.15)}100%{opacity:1;transform:none}}
+#result.run .restime{animation:brkFade .4s 2s both}
+.tile .best small{font-family:var(--led);font-size:.8em;opacity:.8}
 </style>
 
 <section id="splash" class="full"><button class="splashbtn" id="btnSplash">ゲームをはじめる</button><p class="splashnote" id="silentNote">🔈 このゲームは音が出ます<br>音ありで遊ぶのがおすすめ</p></section>
@@ -704,6 +714,7 @@ h3.ih{margin:0;line-height:1.35}
   <div class="eyebrow" id="resEyebrow">RESULT</div>
   <div class="res-band" id="resBand"><div class="res-flag" id="resFlag">復旧</div><div class="res-sig" id="resSig">● SIGNAL OK</div><svg viewBox="0 0 200 80" preserveAspectRatio="none" aria-hidden="true"><path class="res-wave" id="resWave" d="M0 40 L200 40"/></svg><div class="rank" id="rank">PERFECT</div><div class="res-tick" aria-hidden="true"><span id="resTick"></span></div></div>
   <div class="rankline" id="rankline"></div>
+  <div class="restime" id="resTime"></div>
   <div class="stats">
     <div class="stat"><div class="v" id="stTotal">0</div><div class="k">今回のトラブル</div></div>
     <div class="stat"><div class="v" id="stFound">0</div><div class="k">解決</div></div>
@@ -3848,14 +3859,19 @@ function showResult(playedLive){
   L.results.forEach(r=>{const k=r.ev.id;const cur=save.zukan[k];if(r.ok){if(cur!=='solved')newly.add(k);save.zukan[k]='solved'}else if(!cur){save.zukan[k]='seen';newly.add(k)}});
   const bk='L'+S.level.id;const b=save.best[bk]||{};
   const rankOrder={'PERFECT':4,'GOOD':3,'まあまあ':2,'グダグダ':1,'中止':0};
-  if((rankOrder[rank]||0)>=(rankOrder[b.rank]||0)){save.best[bk]={rank,time:S.timeLeft!=null?Math.round(S.timeLeft):0}}
+  // 自己ベスト: 評価が上、または同じ評価で残り時間が多いとき更新。残り秒は結果とシェアに出して、もう一回やりたくさせる
+  const tl=playedLive&&S.timeLeft!=null?Math.round(S.timeLeft*10)/10:null;
+  const ro=rankOrder[rank]||0,bo=rankOrder[b.rank]||0;const isBest=ro>bo||(ro===bo&&tl!=null&&tl>(b.time||0));
+  const hadBest=!!b.rank;
+  if(isBest){save.best[bk]={rank,time:tl!=null?tl:0}}
+  const rt=$('#resTime');rt.innerHTML=tl!=null?'<span class="k">のこり</span><span class="v">'+tl.toFixed(1)+'</span><span class="k">秒</span>'+(isBest&&hadBest&&rank!=='中止'?'<span class="nb">自己ベスト更新！</span>':''):'';
   persist();
   newly.forEach(k=>zNew.add(k));
   S.resItems=pre.map(f=>({name:(f.mc?'[MC] ':'')+f.def.name+(f.pedal?' ─ '+f.pedal.name:''),r:f.def.r,truth:f.def.truth,tip:f.def.tip,ok:!!f.solved,isNew:newly.has(f.def.id),where:f.mc?'MC中':'開演前'}))
     .concat(L.results.map(r=>({name:'[ライブ] '+r.ev.name,r:r.ev.r,truth:r.ev.truth,tip:r.ev.tip,ok:r.ok,isNew:newly.has(r.ev.id),where:'ライブ中'})));
   const ch=$('#chips');ch.classList.toggle('dense',S.resItems.length>10);ch.style.gridTemplateRows='repeat('+Math.max(1,Math.ceil(S.resItems.length/2))+',minmax(0,1fr))';
   ch.innerHTML=S.resItems.map((x,i)=>'<button class="chip '+(x.ok?'ok':'ng')+'" data-i="'+i+'"><span class="mk">'+(x.ok?'✔':'✖')+'</span><span class="t">'+esc(x.name)+'</span><span class="bd">'+(x.isNew?'<span class="nw">NEW</span>':'')+'<span class="s r'+x.r+'">'+RARITY[x.r].stars+'</span></span></button>').join('');
-  const txt='音が出ない！〜本番1分前の捜査線〜\n'+INST[S.inst].icon+INST[S.inst].label+' Lv.'+S.level.id+' '+S.level.name+' → '+rank+(pre.length?'\n原因は「'+pre.slice().sort((a,b)=>b.def.r-a.def.r)[0].def.name+'」だった。':'')+'\nトラブル'+total+'件中'+found+'件解決'+(rareList.length?'（レア'+rareList.length+'）':'')+'\n#音が出ない';
+  const txt='音が出ない！〜本番1分前の捜査線〜\n'+INST[S.inst].icon+INST[S.inst].label+' Lv.'+S.level.id+' '+S.level.name+' → '+rank+(tl!=null?'（のこり'+tl.toFixed(1)+'秒）':'')+(pre.length?'\n原因は「'+pre.slice().sort((a,b)=>b.def.r-a.def.r)[0].def.name+'」だった。':'')+'\nトラブル'+total+'件中'+found+'件解決'+(rareList.length?'（レア'+rareList.length+'）':'')+'\n#音が出ない';
   const url=gameUrl();
   $('#shareText').value=txt+(url?'\n'+url:'');
   $('#btnX').href='https://x.com/intent/tweet?text='+encodeURIComponent(txt)+(url?'&url='+encodeURIComponent(url):'');
@@ -3971,7 +3987,7 @@ function renderTitle(){
     const b=save.best['L'+lv.id];
     const d=document.createElement('button');d.className='tile'+(lv.yaku?' yaku':'');d.dataset.lv=lv.id;
     const pips=LEVELS.map((_,k)=>'<i'+(k<lv.id?' class="on"':'')+'></i>').join('');
-    d.innerHTML='<div><div class="no">'+lv.id+'</div><span class="nm">'+esc(lv.name)+'</span><div class="pips" aria-label="難易度'+lv.id+'/'+LEVELS.length+'">'+pips+'</div></div><div class="row"><span>'+lv.time+'秒</span><span class="best">'+(b?esc(b.rank):'')+'</span></div>';
+    d.innerHTML='<div><div class="no">'+lv.id+'</div><span class="nm">'+esc(lv.name)+'</span><div class="pips" aria-label="難易度'+lv.id+'/'+LEVELS.length+'">'+pips+'</div></div><div class="row"><span>'+lv.time+'秒</span><span class="best">'+(b?esc(b.rank)+(b.time&&b.rank!=='中止'?' <small>'+(+b.time).toFixed(1)+'s</small>':''):'')+'</span></div>';
     l.appendChild(d);
   });
   $('#btnMute').innerHTML='<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/>'+(save.mute?'<path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>':'<path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>')+'</svg><span>'+(save.mute?'OFF':'ON')+'</span>';
